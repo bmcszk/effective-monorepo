@@ -1,0 +1,10 @@
+POST http://localhost:8080/moves
+content-type: application/json
+
+{
+    "id": "{{$guid}}",
+    "sent_at": "{{$datetime iso8601}}",
+    "piece": "White Pawn",
+    "number": 1,
+    "move": "D2D4"
+}

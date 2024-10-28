@@ -1,0 +1,16 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3
+    container_name: rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5672"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+volumes:
+  rabbitmq_data:
