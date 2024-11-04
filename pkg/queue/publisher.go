@@ -7,10 +7,11 @@ import (
 )
 
 func NewPublisher() (message.Publisher, error) {
-	amqpConfig := amqp.NewDurableQueueConfig(amqpURI)
-	
+	config := NewConfig()
+	amqpConfig := amqp.NewDurableQueueConfig(config.AmqpURI)
+
 	publisher, err := amqp.NewPublisher(
-		amqpConfig, 
+		amqpConfig,
 		watermill.NewStdLogger(false, false))
 	if err != nil {
 		return nil, err

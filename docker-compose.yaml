@@ -1,23 +1,31 @@
 include:
-  - docker-compose.infra.yml
+  - docker-compose.infra.yaml
 
 services:
   producer:
     build:
       args:
         - app_name=producer
-    depends_on:
+    links:
       - rabbitmq
     expose:
       - "8080"
     env_file: .env
+    environment:
+      - AMQP_URI=amqp://guest:guest@rabbitmq:5672/
     restart: on-failure
+    networks:
+      - monorepo
 
   consumer:
     build:
       args:
         - app_name=consumer
-    depends_on:
+    links:
       - rabbitmq
     env_file: .env
+    environment:
+      - AMQP_URI=amqp://guest:guest@rabbitmq:5672/
     restart: on-failure
+    networks:
+      - monorepo

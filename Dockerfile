@@ -8,7 +8,7 @@ WORKDIR /src
 COPY . .
 ARG app_name
 ENV APP_NAME $app_name
-RUN CGO_ENABLED=0 go build -o "/app/service" "./services/${APP_NAME}/main.go"
+RUN CGO_ENABLED=0 go build -o "/app/service" "./services/${APP_NAME}"
 
 FROM gcr.io/distroless/static-debian12 AS runner
 WORKDIR /app

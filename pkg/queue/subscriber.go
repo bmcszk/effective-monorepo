@@ -9,7 +9,8 @@ import (
 var amqpURI = "amqp://guest:guest@localhost:5672/"
 
 func NewSubscriber() (message.Subscriber, error) {
-	amqpConfig := amqp.NewDurableQueueConfig(amqpURI)
+	config := NewConfig()
+	amqpConfig := amqp.NewDurableQueueConfig(config.AmqpURI)
 
 	subscriber, err := amqp.NewSubscriber(
 		amqpConfig,
