@@ -1,0 +1,18 @@
+{{- if (.Values.producer.enabled) -}}
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.producer.name }}
+  labels:
+    app: {{ .Values.producer.name }}
+    ctx: {{ .Chart.Name }}
+spec:
+  ports:
+    - name: "50051"
+      port: 50051
+      targetPort: 50051
+  selector:
+    app: {{ .Values.producer.name }}
+
+{{- end }}

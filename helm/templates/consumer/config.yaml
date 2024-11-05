@@ -1,0 +1,14 @@
+{{- if (.Values.consumer.enabled) -}}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.consumer.name }}-config
+  labels:
+    app: {{ .Values.consumer.name }}
+    ctx: {{ .Chart.Name }}
+data:
+  APP_ENV: {{ .Values.env }}
+  AMQP_URI: {{ .Values.global.amqp.uri }}
+
+{{- end }}

@@ -1,0 +1,22 @@
+
+env: production
+global:
+  amqp:
+    uri: amqp://guest:guest@rabbitmq.infra:5672/
+
+consumer:
+  enabled: true
+  name: consumer
+  tag: build
+  replicas: 1
+
+producer:
+  enabled: true
+  name: producer
+  tag: build
+  replicas: 1
+
+test:
+  enabled: true
+  name: test
+  tag: build
