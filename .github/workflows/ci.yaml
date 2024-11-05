@@ -49,8 +49,7 @@ jobs:
   test:
     needs: [ detect-changes ]
     if: needs.detect-changes.outputs.toBuild != '[]'
-    runs-on:
-      group: k8s-runner-group-cwp
+    runs-on: ubuntu-latest
     steps:
       - name: Set up Go
         uses: actions/setup-go@v5
