@@ -6,15 +6,25 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message"
 )
 
-func NewPublisher() (message.Publisher, error) {
+type Publisher struct {
+	message.Publisher
+	config *Config
+}
+
+func NewPublisher() (*Publisher, error) {
+	logger := watermill.NewSlogLogger(nil)
 	config := NewConfig()
 	amqpConfig := amqp.NewDurableQueueConfig(config.AmqpURI)
 
 	publisher, err := amqp.NewPublisher(
 		amqpConfig,
-		watermill.NewStdLogger(false, false))
+		logger)
 	if err != nil {
 		return nil, err
 	}
-	return publisher, err
+	return &Publisher{Publisher: publisher, config: config}, err
+}
+
+func (p *Publisher) Publish(message *message.Message) error {
+	return p.Publisher.Publish(p.config.Topic, message)
 }

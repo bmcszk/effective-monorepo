@@ -2,13 +2,17 @@ package main
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 
-	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/bmcszk/effective-monorepo/pkg/queue"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		slog.Warn("failed to load .env")
+	}
 	publisher, err := queue.NewPublisher()
 	if err != nil {
 		panic(err)
@@ -20,7 +24,7 @@ func main() {
 	http.ListenAndServe(":8080", router)
 }
 
-func createMove(publisher message.Publisher) func(http.ResponseWriter, *http.Request) {
+func createMove(publisher *queue.Publisher) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var chMvReq ChessMoveRequest
 		if err := json.NewDecoder(r.Body).Decode(&chMvReq); err != nil {
@@ -35,7 +39,7 @@ func createMove(publisher message.Publisher) func(http.ResponseWriter, *http.Req
 			w.Write([]byte(err.Error()))
 			return
 		}
-		if err := publisher.Publish("test1", qMsg); err != nil {
+		if err := publisher.Publish(qMsg); err != nil {
 			w.WriteHeader(500)
 			w.Write([]byte(err.Error()))
 			return
