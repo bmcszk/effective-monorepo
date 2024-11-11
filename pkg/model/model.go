@@ -9,7 +9,6 @@ import (
 type ChessMove struct {
 	ID     uuid.UUID `json:"id" bson:"id"`
 	SentAt time.Time `json:"sent_at" bson:"sent_at"`
-	Piece  string    `json:"piece" bson:"piece"`
-	Number int       `json:"number" bson:"number"`
+	GameID uuid.UUID `json:"game_id" bson:"game_id"`
 	Move   string    `json:"move" bson:"move"`
 }
