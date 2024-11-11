@@ -1,6 +1,6 @@
 services:
   rabbitmq:
-    image: rabbitmq:3
+    image: rabbitmq:3-management
     ports:
       - 5672:5672
       - 15672:15672
@@ -9,8 +9,30 @@ services:
     networks:
       - monorepo
 
+  etcd:
+    image: quay.io/coreos/etcd:v3.5.16
+    entrypoint: /usr/local/bin/etcd
+    command:
+      - '--name=etcd'
+      - '--initial-advertise-peer-urls=http://etcd:2380'
+      - '--listen-peer-urls=http://0.0.0.0:2380'
+      - '--listen-client-urls=http://0.0.0.0:2379'
+      - '--advertise-client-urls=http://etcd:2379'
+      - '--heartbeat-interval=250'
+      - '--election-timeout=1250'
+      - '--initial-cluster=etcd=http://etcd:2380'
+      - '--initial-cluster-state=new'
+      - '--initial-cluster-token=mys3cr3ttok3n'
+    volumes:
+      - etcd:/etcd_data
+    ports:
+      - 2379:2379
+      - 2380:2380
+    
+
 volumes:
   rabbitmq_data:
+  etcd:
 
 networks:
   monorepo:
