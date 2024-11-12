@@ -3,8 +3,27 @@ content-type: application/json
 
 {
     "id": "{{$guid}}",
+    "game_id": "39f0950c-a01b-11ef-aa8b-002b672e43f2",
     "sent_at": "{{$datetime iso8601}}",
-    "piece": "White Pawn",
-    "number": 1,
-    "move": "D2D4"
+    "move": "b1c3"
+}
+###
+POST http://localhost:8080/moves
+content-type: application/json
+
+{
+    "id": "{{$guid}}",
+    "game_id": "39f0950c-a01b-11ef-aa8b-002b672e43f2",
+    "sent_at": "{{$datetime iso8601}}",
+    "move": "e2e4"
+}
+###
+POST http://localhost:8080/moves
+content-type: application/json
+
+{
+    "id": "{{$guid}}",
+    "game_id": "39f0950c-a01b-11ef-aa8b-002b672e43f2",
+    "sent_at": "{{$datetime iso8601}}",
+    "move": "d7d5"
 }
