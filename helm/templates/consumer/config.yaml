@@ -10,5 +10,7 @@ metadata:
 data:
   APP_ENV: {{ .Values.env }}
   AMQP_URI: {{ .Values.global.amqp.uri }}
+  ETCD_URIS: {{ .Values.consumer.etcd.uris }}
+  ETCD_PREFIX: {{ .Values.consumer.etcd.prefix }}
 
 {{- end }}

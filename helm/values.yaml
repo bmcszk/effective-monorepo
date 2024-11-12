@@ -9,6 +9,9 @@ consumer:
   name: consumer
   tag: build
   replicas: 1
+  etcd:
+    uris: etcd.infra:2379
+    prefix: monorepo
 
 producer:
   enabled: true
