@@ -3,12 +3,15 @@ env: production
 global:
   amqp:
     uri: amqp://guest:guest@rabbitmq.infra:5672/
+    topic: monorepo
 
 consumer:
   enabled: true
   name: consumer
   tag: build
   replicas: 1
+  amqp:
+    topicDLQ: monorepo-dlq
   etcd:
     uris: etcd.infra:2379
     prefix: monorepo

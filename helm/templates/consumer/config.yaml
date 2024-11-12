@@ -10,6 +10,8 @@ metadata:
 data:
   APP_ENV: {{ .Values.env }}
   AMQP_URI: {{ .Values.global.amqp.uri }}
+  QUEUE_TOPIC: {{ .Values.global.amqp.topic }}
+  QUEUE_TOPIC_DLQ: {{ .Values.consumer.amqp.topicDLQ }}
   ETCD_URIS: {{ .Values.consumer.etcd.uris }}
   ETCD_PREFIX: {{ .Values.consumer.etcd.prefix }}
 

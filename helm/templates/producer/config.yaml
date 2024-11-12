@@ -10,5 +10,6 @@ metadata:
 data:
   APP_ENV: {{ .Values.env }}
   AMQP_URI: {{ .Values.global.amqp.uri }}
+  QUEUE_TOPIC: {{ .Values.global.amqp.topic }}
 
 {{- end }}
