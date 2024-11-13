@@ -9,9 +9,9 @@ metadata:
     ctx: {{ .Chart.Name }}
 spec:
   ports:
-    - name: "50051"
-      port: 50051
-      targetPort: 50051
+    - name: "8080"
+      port: 8080
+      targetPort: 8080
   selector:
     app: {{ .Values.producer.name }}
 

@@ -26,3 +26,4 @@ test:
   enabled: true
   name: test
   tag: build
+  producerUri: http://producer:8080

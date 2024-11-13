@@ -31,14 +31,14 @@ if values['producer']['enabled']:
 
 # consumer
 if values['consumer']['enabled']:
-    k8s_resource(workload='consumer', objects=['consumer-config:configmap'], labels='monorepo', resource_deps=['monorepo-ns', 'rabbitmq'])
+    k8s_resource(workload='consumer', objects=['consumer-config:configmap'], labels='monorepo', resource_deps=['monorepo-ns', 'rabbitmq', 'etcd'])
     docker_build(
         'effective-monorepo/consumer:build', '../',
         build_args = {'app_name': 'consumer'})
 
 # test
 if values['test']['enabled']:
-    k8s_resource(workload='test', objects=['test-config:configmap'], labels='test', resource_deps=['monorepo-ns', 'rabbitmq'])
+    k8s_resource(workload='test', objects=['test-config:configmap'], labels='test', resource_deps=['monorepo-ns', 'producer', 'consumer'])
     docker_build(
         'effective-monorepo/test:build', '../',
         dockerfile = '../Dockerfile.test')
