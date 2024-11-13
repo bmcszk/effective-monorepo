@@ -43,7 +43,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           build-all: ${{ inputs.build-all }}
           map: |-
-            pkg|go.mod|go.sum|Dockerfile -> consumer|producer
+            pkg|go.mod|go.sum|Dockerfile|e2e -> consumer|producer
             services/consumer -> consumer
             services/producer -> producer
 

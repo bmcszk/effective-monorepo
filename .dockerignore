@@ -3,3 +3,4 @@
 !go.sum
 !pkg/
 !services/
+!e2e/

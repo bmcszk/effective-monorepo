@@ -3,7 +3,7 @@ package game
 import (
 	"context"
 
-	"github.com/bmcszk/effective-monorepo/services/consumer/internal/repo"
+	"github.com/bmcszk/effective-monorepo/services/consumer/repo"
 	"github.com/google/uuid"
 )
 
