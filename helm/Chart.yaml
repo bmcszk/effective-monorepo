@@ -1,0 +1,7 @@
+apiVersion: v2
+name: effective-monorepo
+description: Effective monorepo
+type: application
+icon:
+version: 0.0.1
+appVersion: 0.0.1

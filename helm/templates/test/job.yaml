@@ -1,0 +1,27 @@
+{{- if (.Values.test.enabled) -}}
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    app: {{ .Values.test.name }}
+    ctx: {{ .Chart.Name }}
+  name: {{ .Values.test.name }}
+spec:
+  template:
+    spec:
+      containers:
+      - name: {{ .Values.test.name }}
+        image: "effective-monorepo/test:{{ .Values.test.tag | default "latest" }}"
+        envFrom:
+          - configMapRef:
+              name: {{ .Values.test.name }}-config
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+      restartPolicy: Never
+
+{{- end }}

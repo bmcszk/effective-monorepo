@@ -1,0 +1,1 @@
+local_resource('docker_registry_proxy', './registry-config.sh', labels='kind')

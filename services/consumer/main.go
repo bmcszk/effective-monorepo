@@ -7,7 +7,7 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/bmcszk/effective-monorepo/pkg/queue"
 	"github.com/bmcszk/effective-monorepo/services/consumer/internal/game"
-	"github.com/bmcszk/effective-monorepo/services/consumer/internal/repo"
+	"github.com/bmcszk/effective-monorepo/services/consumer/repo"
 	"github.com/joho/godotenv"
 )
 

@@ -1,0 +1,47 @@
+{{- if (.Values.consumer.enabled) -}}
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.consumer.name }}
+  labels:
+    app: {{ .Values.consumer.name }}
+    ctx: {{ .Chart.Name }}
+spec:
+  replicas: {{ .Values.consumer.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.consumer.name }}
+      ctx: {{ .Chart.Name }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.consumer.name }}
+        ctx: {{ .Chart.Name }}
+    spec:
+      containers:
+        - name: {{ .Values.consumer.name }}
+          image: "effective-monorepo/consumer:{{ .Values.consumer.tag | default "latest" }}"
+          envFrom:
+            - configMapRef:
+                name: {{ .Values.consumer.name }}-config
+          env:
+            - name: GOMEMLIMIT
+              valueFrom:
+                resourceFieldRef:
+                  resource: limits.memory
+            - name: GOMAXPROCS
+              valueFrom:
+                resourceFieldRef:
+                  resource: limits.cpu
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+      restartPolicy: Always
+
+{{- end }}

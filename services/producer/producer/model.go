@@ -1,6 +1,7 @@
-package main
+package producer
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/bmcszk/effective-monorepo/pkg/model"
@@ -16,4 +17,8 @@ func (r ChessMoveRequest) ToMessage() queue.ChessMoveMessage {
 		ChessMove:   r.ChessMove,
 		PublishedAt: time.Now(),
 	}
+}
+
+func (r ChessMoveRequest) ToJSON() ([]byte, error) {
+	return json.Marshal(r)
 }

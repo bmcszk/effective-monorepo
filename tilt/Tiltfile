@@ -1,0 +1,44 @@
+load('ext://dotenv', 'dotenv')
+load('ext://namespace', 'namespace_create')
+load('ext://secret', 'secret_from_dict')
+
+trigger_mode(TRIGGER_MODE_MANUAL)
+
+dotenv(fn='../.env')
+
+if "kind" in k8s_context():
+    load_dynamic('./kind/Tiltfile')
+
+load_dynamic('./infra/Tiltfile')
+
+valuesPath = '../helm/values.yaml'
+values = read_yaml(valuesPath)
+
+namespace_create('monorepo', allow_duplicates=True)
+k8s_resource(objects=['monorepo:namespace', 'env-secrets:secret'], new_name='monorepo-ns', labels='monorepo')
+
+k8s_yaml(secret_from_dict('env-secrets', namespace='monorepo', inputs={
+}))
+
+k8s_yaml(helm('../helm', namespace = 'monorepo', values = [valuesPath], set=[]))
+
+# producer
+if values['producer']['enabled']:
+    k8s_resource(workload='producer', objects=['producer-config:configmap'], labels='monorepo', resource_deps=['monorepo-ns', 'rabbitmq'])
+    docker_build(
+        'effective-monorepo/producer:build', '../',
+        build_args = {'app_name': 'producer'})
+
+# consumer
+if values['consumer']['enabled']:
+    k8s_resource(workload='consumer', objects=['consumer-config:configmap'], labels='monorepo', resource_deps=['monorepo-ns', 'rabbitmq', 'etcd'])
+    docker_build(
+        'effective-monorepo/consumer:build', '../',
+        build_args = {'app_name': 'consumer'})
+
+# test
+if values['test']['enabled']:
+    k8s_resource(workload='test', objects=['test-config:configmap'], labels='test', resource_deps=['monorepo-ns', 'producer', 'consumer'])
+    docker_build(
+        'effective-monorepo/test:build', '../',
+        dockerfile = '../Dockerfile.test')
