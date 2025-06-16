@@ -38,29 +38,44 @@ func NewEtcdCleaner(config EtcdConfig) (*EtcdCleaner, error) {
 
 func (e *EtcdCleaner) Cleanup(ctx context.Context) error {
 	slog.Info("starting etcd cleanup", "prefix", e.config.Prefix)
+	return e.retryCleanup(ctx)
+}
 
+func (e *EtcdCleaner) retryCleanup(ctx context.Context) error {
 	var lastErr error
 	for attempt := 0; attempt < e.config.RetryAttempts; attempt++ {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
+		if err := checkContextCancellation(ctx); err != nil {
+			return err
 		}
 
 		if err := e.attemptCleanup(ctx); err != nil {
 			lastErr = err
-			if attempt < e.config.RetryAttempts-1 {
-				slog.Warn("retrying etcd cleanup", "prefix", e.config.Prefix, "attempt", attempt+1, "error", err)
-				time.Sleep(e.config.RetryBackoff)
+			if e.shouldContinueRetrying(attempt, err) {
 				continue
 			}
 			return lastErr
 		}
-
 		return nil
 	}
-
 	return lastErr
+}
+
+func checkContextCancellation(ctx context.Context) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+		return nil
+	}
+}
+
+func (e *EtcdCleaner) shouldContinueRetrying(attempt int, err error) bool {
+	if attempt >= e.config.RetryAttempts-1 {
+		return false
+	}
+	slog.Warn("retrying etcd cleanup", "prefix", e.config.Prefix, "attempt", attempt+1, "error", err)
+	time.Sleep(e.config.RetryBackoff)
+	return true
 }
 
 func (e *EtcdCleaner) attemptCleanup(ctx context.Context) error {

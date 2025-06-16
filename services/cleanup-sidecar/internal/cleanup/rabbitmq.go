@@ -63,29 +63,44 @@ func (r *RabbitMQCleaner) Cleanup(ctx context.Context) error {
 
 func (r *RabbitMQCleaner) cleanQueue(ctx context.Context, queueName string) error {
 	slog.Info("cleaning queue", "queue", queueName)
+	return r.retryQueueCleanup(ctx, queueName)
+}
 
+func (r *RabbitMQCleaner) retryQueueCleanup(ctx context.Context, queueName string) error {
 	var lastErr error
 	for attempt := 0; attempt < r.config.RetryAttempts; attempt++ {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
+		if err := checkContextCancellationRabbit(ctx); err != nil {
+			return err
 		}
 
 		if err := r.attemptQueueCleanup(queueName); err != nil {
 			lastErr = err
-			if attempt < r.config.RetryAttempts-1 {
-				slog.Warn("retrying queue cleanup", "queue", queueName, "attempt", attempt+1, "error", err)
-				time.Sleep(r.config.RetryBackoff)
+			if r.shouldContinueRetrying(queueName, attempt, err) {
 				continue
 			}
 			return lastErr
 		}
-
 		return nil
 	}
-
 	return lastErr
+}
+
+func checkContextCancellationRabbit(ctx context.Context) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+		return nil
+	}
+}
+
+func (r *RabbitMQCleaner) shouldContinueRetrying(queueName string, attempt int, err error) bool {
+	if attempt >= r.config.RetryAttempts-1 {
+		return false
+	}
+	slog.Warn("retrying queue cleanup", "queue", queueName, "attempt", attempt+1, "error", err)
+	time.Sleep(r.config.RetryBackoff)
+	return true
 }
 
 func (r *RabbitMQCleaner) attemptQueueCleanup(queueName string) error {

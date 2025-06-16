@@ -16,6 +16,7 @@ func TestGame_Move_InvalidMoves(t *testing.T) {
 }
 
 func testValidMoves(t *testing.T) {
+	t.Helper()
 	gameUUID := uuid.New()
 
 	tests := []struct {
@@ -95,6 +96,7 @@ func testValidMoves(t *testing.T) {
 }
 
 func testInvalidMoves(t *testing.T) {
+	t.Helper()
 	gameUUID := uuid.New()
 
 	tests := []struct {
