@@ -55,6 +55,8 @@ linters:
       - name: exported
         exclude: ["**/*_test.go", "test/*.go"]
         disabled: true
+      - name: cognitive-complexity
+        arguments: [8]
     nestif:
       min-complexity: 4
 

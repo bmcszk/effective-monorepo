@@ -1,3 +1,5 @@
+//go:build e2e
+
 package e2e
 
 import (
@@ -37,7 +39,7 @@ func init() {
 	}
 }
 
-func NewBlocks(t *testing.T) (firstBlock, secondBlock, thirdBlock *Block) {
+func NewBlocks(t *testing.T) (given, when, then *Block) {
 	t.Helper()
 	ctx, cancel := context.WithCancel(context.Background())
 	repository, err := repo.NewRepo()

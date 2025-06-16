@@ -166,37 +166,35 @@ func trimLines(lines []string) []string {
 
 func normalize(lines []string) []string {
 	l := len(lines)
-	if l == 8 {
-		return lines
-	}
-
-	lines = padLines(lines, l)
-	lines = trimEmptyEdges(lines)
-
-	return normalize(lines) // Recursive call to handle remaining cases
-}
-
-func padLines(lines []string, l int) []string {
 	if l < 8 {
-		return append(lines, "")
+		return padLines(lines)
+	}
+	if l > 8 {
+		return cutLines(lines)
 	}
 	return lines
 }
 
-func trimEmptyEdges(lines []string) []string {
+func padLines(lines []string) []string {
+	for i := len(lines); i <= 8; i++ {
+		lines = append(lines, "")
+	}
+	return lines
+}
+
+func cutLines(lines []string) []string {
 	l := len(lines)
-	if l <= 9 {
+	if l == 8 {
 		return lines
 	}
-
-	if lines[0] == "" && lines[l-1] == "" {
-		return lines[1 : l-1]
+	if l > 9 && lines[0] == "" && lines[l-1] == "" {
+		return cutLines(lines[1 : l-1])
 	}
 	if lines[0] == "" {
-		return lines[1:]
+		return cutLines(lines[1:])
 	}
 	if lines[l-1] == "" {
-		return lines[:l-1]
+		return cutLines(lines[:l-1])
 	}
 	return lines
 }
