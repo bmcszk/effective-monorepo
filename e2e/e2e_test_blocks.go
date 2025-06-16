@@ -90,9 +90,6 @@ func (b *Block) DispatchingMove() *Block {
 		"application/json",
 		bytes.NewReader(requestBody),
 	)
-	if b.respReturned != nil {
-		defer b.respReturned.Body.Close()
-	}
 	return b
 }
 
@@ -100,8 +97,11 @@ func (b *Block) MoveIsDispatched() *Block {
 	if b.errReturned != nil {
 		b.Fatal(b.errReturned)
 	}
-	if b.respReturned.StatusCode != http.StatusCreated {
-		b.Fatal("expected status code 201")
+	if b.respReturned != nil {
+		defer b.respReturned.Body.Close()
+		if b.respReturned.StatusCode != http.StatusCreated {
+			b.Fatal("expected status code 201")
+		}
 	}
 	return b
 }
