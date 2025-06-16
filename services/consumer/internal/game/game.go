@@ -90,7 +90,7 @@ func (b Board) get(square string) Piece {
 
 // move https://en.wikipedia.org/wiki/Universal_Chess_Interface
 func (b Board) move(move string) (Board, error) {
-	parsedMove, err := b.parseMove(move)
+	parsedMove, err := parseMove(move)
 	if err != nil {
 		return b, err
 	}
@@ -108,7 +108,7 @@ type parsedMove struct {
 	to   string
 }
 
-func (_ Board) parseMove(move string) (parsedMove, error) {
+func parseMove(move string) (parsedMove, error) {
 	move = strings.TrimSpace(strings.ToLower(move))
 	if len(move) < 4 {
 		return parsedMove{}, errors.New("invalid move")
@@ -131,7 +131,7 @@ func (b Board) executeMove(move parsedMove, piece Piece) (Board, error) {
 	target := b.get(move.to)
 
 	if target != 0 && target.Color() == piece.Color() {
-		if b.isCastleMove(piece, target) {
+		if isCastleMove(piece, target) {
 			return b.performCastle(move, piece, target), nil
 		}
 		return b, errors.New("pieces are of the same color")
@@ -142,7 +142,7 @@ func (b Board) executeMove(move parsedMove, piece Piece) (Board, error) {
 	return b.performRegularMove(move, piece), nil
 }
 
-func (_ Board) isCastleMove(piece, target Piece) bool {
+func isCastleMove(piece, target Piece) bool {
 	return (piece == '♔' && target == '♖') || (piece == '♚' && target == '♜')
 }
 
