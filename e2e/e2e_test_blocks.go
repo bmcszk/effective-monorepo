@@ -6,12 +6,14 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/bmcszk/effective-monorepo/pkg/model"
 	"github.com/bmcszk/effective-monorepo/services/consumer/repo"
 	"github.com/bmcszk/effective-monorepo/services/producer/producer"
+	"github.com/bmcszk/xmlsurf"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 )
@@ -105,6 +107,7 @@ func (b *Block) boardIsFetched() *Block {
 	if b.errReturned != nil {
 		b.T.Fatal(b.errReturned)
 	}
+	_, _ = xmlsurf.ParseToMap(strings.NewReader("asdf"))
 	if b.boardReturned == "" {
 		b.T.Fatal("expected board to be not empty")
 	}

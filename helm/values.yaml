@@ -5,6 +5,26 @@ global:
     uri: amqp://guest:guest@rabbitmq.infra:5672/
     topic: monorepo
 
+cleanup:
+  enabled: false
+  targets:
+    queue: true
+    database: true
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "50m"
+    limits:
+      memory: "128Mi"
+      cpu: "100m"
+  retry:
+    attempts: 3
+    backoff: "5s"
+  timeout: "30s"
+  image:
+    repository: effective-monorepo/cleanup-sidecar
+    tag: build
+
 consumer:
   enabled: true
   name: consumer
