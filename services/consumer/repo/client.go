@@ -49,8 +49,8 @@ func NewRepo() (*Repo, error) {
 	}, nil
 }
 
-func (r *Repo) Close() {
-	r.client.Close()
+func (r *Repo) Close() error {
+	return r.client.Close()
 }
 
 func (r *Repo) Get(ctx context.Context, key string) (string, error) {

@@ -1,26 +1,27 @@
-package game
+package game_test
 
 import (
 	"testing"
 
+	"github.com/bmcszk/effective-monorepo/services/consumer/internal/game"
 	"github.com/google/uuid"
 )
 
 func TestGame_Move(t *testing.T) {
-	uuid := uuid.New()
+	gameUUID := uuid.New()
 
 	tests := []struct {
 		name          string
-		board         Board
-		expectedBoard Board
+		board         game.Board
+		expectedBoard game.Board
 		move          string
 		wantErr       bool
 		expectedErr   string
 	}{
 		{
 			name:  "move",
-			board: NewBoard(StartingBoardStr),
-			expectedBoard: NewBoard(`
+			board: game.NewBoard(game.StartingBoardStr),
+			expectedBoard: game.NewBoard(`
 				♜♞♝♛♚♝♞♜
 				♟♟♟♟♟♟♟♟
 
@@ -36,8 +37,8 @@ func TestGame_Move(t *testing.T) {
 		},
 		{
 			name:  "knight move",
-			board: NewBoard(StartingBoardStr),
-			expectedBoard: NewBoard(`
+			board: game.NewBoard(game.StartingBoardStr),
+			expectedBoard: game.NewBoard(`
 				♜♞♝♛♚♝♞♜
 				♟♟♟♟♟♟♟♟
 
@@ -53,7 +54,7 @@ func TestGame_Move(t *testing.T) {
 		},
 		{
 			name: "almost empty board",
-			board: NewBoard(`
+			board: game.NewBoard(`
 				
 
 
@@ -63,7 +64,7 @@ func TestGame_Move(t *testing.T) {
 				
 
 				`),
-			expectedBoard: NewBoard(`
+			expectedBoard: game.NewBoard(`
 				
 
 
@@ -79,28 +80,28 @@ func TestGame_Move(t *testing.T) {
 		},
 		{
 			name:        "pieces are of the same color",
-			board:       NewBoard(StartingBoardStr),
+			board:       game.NewBoard(game.StartingBoardStr),
 			move:        "a2b2",
 			wantErr:     true,
 			expectedErr: "pieces are of the same color",
 		},
 		{
 			name:        "square is empty",
-			board:       NewBoard(StartingBoardStr),
+			board:       game.NewBoard(game.StartingBoardStr),
 			move:        "a3a4",
 			wantErr:     true,
 			expectedErr: "square is empty",
 		},
 		{
 			name:        "invalid square",
-			board:       NewBoard(StartingBoardStr),
+			board:       game.NewBoard(game.StartingBoardStr),
 			move:        "i8i9",
 			wantErr:     true,
 			expectedErr: "invalid square",
 		},
 		{
 			name:        "invalid move",
-			board:       NewBoard(StartingBoardStr),
+			board:       game.NewBoard(game.StartingBoardStr),
 			move:        "",
 			wantErr:     true,
 			expectedErr: "invalid move",
@@ -108,7 +109,7 @@ func TestGame_Move(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			g := NewGame(uuid, tt.board)
+			g := game.NewGame(gameUUID, tt.board)
 			err := g.Move(tt.move)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Game.Move() error = %v, wantErr %v", err, tt.wantErr)

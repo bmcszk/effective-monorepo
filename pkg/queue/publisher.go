@@ -25,6 +25,6 @@ func NewPublisher() (*Publisher, error) {
 	return &Publisher{Publisher: publisher, config: config}, err
 }
 
-func (p *Publisher) Publish(message *message.Message) error {
-	return p.Publisher.Publish(p.config.Topic, message)
+func (p *Publisher) Publish(msg *message.Message) error {
+	return p.Publisher.Publish(p.config.Topic, msg)
 }

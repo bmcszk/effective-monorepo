@@ -11,9 +11,9 @@ type GameProvider struct {
 	repo *repo.Repo
 }
 
-func NewGameProvider(repo *repo.Repo) *GameProvider {
+func NewGameProvider(repository *repo.Repo) *GameProvider {
 	return &GameProvider{
-		repo: repo,
+		repo: repository,
 	}
 }
 
@@ -32,9 +32,5 @@ func (p *GameProvider) HandleMove(ctx context.Context, gameID uuid.UUID, move st
 	if err := game.Move(move); err != nil {
 		return err
 	}
-	if err := p.repo.Put(ctx, gameID.String(), game.Board.String()); err != nil {
-		return err
-	}
-
-	return nil
+	return p.repo.Put(ctx, gameID.String(), game.Board.String())
 }

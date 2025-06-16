@@ -40,5 +40,7 @@ func main() {
 	}
 
 	slog.Info("cleanup completed successfully")
-	fmt.Println("Cleanup sidecar completed successfully")
+	if _, err := fmt.Println("Cleanup sidecar completed successfully"); err != nil {
+		slog.Error("failed to write to stdout", "error", err)
+	}
 }
