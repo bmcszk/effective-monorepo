@@ -47,43 +47,54 @@ func (e *EtcdCleaner) Cleanup(ctx context.Context) error {
 		default:
 		}
 
-		// Get all keys with the prefix first to count them
-		resp, err := e.client.Get(ctx, e.config.Prefix, clientv3.WithPrefix(), clientv3.WithCountOnly())
-		if err != nil {
-			lastErr = fmt.Errorf("failed to count keys with prefix %s: %w", e.config.Prefix, err)
+		if err := e.attemptCleanup(ctx); err != nil {
+			lastErr = err
 			if attempt < e.config.RetryAttempts-1 {
-				slog.Warn("retrying etcd key count", "prefix", e.config.Prefix, "attempt", attempt+1, "error", err)
+				slog.Warn("retrying etcd cleanup", "prefix", e.config.Prefix, "attempt", attempt+1, "error", err)
 				time.Sleep(e.config.RetryBackoff)
 				continue
 			}
 			return lastErr
 		}
 
-		keyCount := resp.Count
-		slog.Info("found keys to delete", "prefix", e.config.Prefix, "count", keyCount)
-
-		if keyCount == 0 {
-			slog.Info("no keys found to delete", "prefix", e.config.Prefix)
-			return nil
-		}
-
-		// Delete all keys with the prefix
-		delResp, err := e.client.Delete(ctx, e.config.Prefix, clientv3.WithPrefix())
-		if err != nil {
-			lastErr = fmt.Errorf("failed to delete keys with prefix %s: %w", e.config.Prefix, err)
-			if attempt < e.config.RetryAttempts-1 {
-				slog.Warn("retrying etcd key deletion", "prefix", e.config.Prefix, "attempt", attempt+1, "error", err)
-				time.Sleep(e.config.RetryBackoff)
-				continue
-			}
-			return lastErr
-		}
-
-		slog.Info("etcd cleanup completed", "prefix", e.config.Prefix, "keys_deleted", delResp.Deleted)
 		return nil
 	}
 
 	return lastErr
+}
+
+func (e *EtcdCleaner) attemptCleanup(ctx context.Context) error {
+	keyCount, err := e.countKeys(ctx)
+	if err != nil {
+		return err
+	}
+
+	if keyCount == 0 {
+		slog.Info("no keys found to delete", "prefix", e.config.Prefix)
+		return nil
+	}
+
+	return e.deleteKeys(ctx)
+}
+
+func (e *EtcdCleaner) countKeys(ctx context.Context) (int64, error) {
+	resp, err := e.client.Get(ctx, e.config.Prefix, clientv3.WithPrefix(), clientv3.WithCountOnly())
+	if err != nil {
+		return 0, fmt.Errorf("failed to count keys with prefix %s: %w", e.config.Prefix, err)
+	}
+
+	slog.Info("found keys to delete", "prefix", e.config.Prefix, "count", resp.Count)
+	return resp.Count, nil
+}
+
+func (e *EtcdCleaner) deleteKeys(ctx context.Context) error {
+	delResp, err := e.client.Delete(ctx, e.config.Prefix, clientv3.WithPrefix())
+	if err != nil {
+		return fmt.Errorf("failed to delete keys with prefix %s: %w", e.config.Prefix, err)
+	}
+
+	slog.Info("etcd cleanup completed", "prefix", e.config.Prefix, "keys_deleted", delResp.Deleted)
+	return nil
 }
 
 func (e *EtcdCleaner) Close() error {

@@ -60,29 +60,49 @@ func (c *Cleaner) Run(ctx context.Context) error {
 		"clean_queue", c.config.CleanQueue,
 		"clean_database", c.config.CleanDatabase)
 
-	// Clean RabbitMQ if enabled
-	if c.config.CleanQueue {
-		if c.rabbitmqCleaner != nil {
-			if err := c.rabbitmqCleaner.Cleanup(ctx); err != nil {
-				return fmt.Errorf("RabbitMQ cleanup failed: %w", err)
-			}
-		}
-	} else {
-		slog.Info("skipping RabbitMQ cleanup (disabled)")
+	if err := c.cleanQueue(ctx); err != nil {
+		return err
 	}
 
-	// Clean etcd if enabled
-	if c.config.CleanDatabase {
-		if c.etcdCleaner != nil {
-			if err := c.etcdCleaner.Cleanup(ctx); err != nil {
-				return fmt.Errorf("etcd cleanup failed: %w", err)
-			}
-		}
-	} else {
-		slog.Info("skipping etcd cleanup (disabled)")
+	if err := c.cleanDatabase(ctx); err != nil {
+		return err
 	}
 
 	slog.Info("cleanup process completed successfully")
+	return nil
+}
+
+func (c *Cleaner) cleanQueue(ctx context.Context) error {
+	if !c.config.CleanQueue {
+		slog.Info("skipping RabbitMQ cleanup (disabled)")
+		return nil
+	}
+
+	if c.rabbitmqCleaner == nil {
+		return nil
+	}
+
+	if err := c.rabbitmqCleaner.Cleanup(ctx); err != nil {
+		return fmt.Errorf("RabbitMQ cleanup failed: %w", err)
+	}
+
+	return nil
+}
+
+func (c *Cleaner) cleanDatabase(ctx context.Context) error {
+	if !c.config.CleanDatabase {
+		slog.Info("skipping etcd cleanup (disabled)")
+		return nil
+	}
+
+	if c.etcdCleaner == nil {
+		return nil
+	}
+
+	if err := c.etcdCleaner.Cleanup(ctx); err != nil {
+		return fmt.Errorf("etcd cleanup failed: %w", err)
+	}
+
 	return nil
 }
 

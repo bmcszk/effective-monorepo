@@ -72,42 +72,58 @@ func (r *RabbitMQCleaner) cleanQueue(ctx context.Context, queueName string) erro
 		default:
 		}
 
-		// Declare queue to ensure it exists
-		queue, err := r.channel.QueueDeclare(
-			queueName,
-			true,  // durable
-			false, // delete when unused
-			false, // exclusive
-			false, // no-wait
-			nil,   // arguments
-		)
-		if err != nil {
-			lastErr = fmt.Errorf("failed to declare queue %s: %w", queueName, err)
+		if err := r.attemptQueueCleanup(queueName); err != nil {
+			lastErr = err
 			if attempt < r.config.RetryAttempts-1 {
-				slog.Warn("retrying queue declaration", "queue", queueName, "attempt", attempt+1, "error", err)
+				slog.Warn("retrying queue cleanup", "queue", queueName, "attempt", attempt+1, "error", err)
 				time.Sleep(r.config.RetryBackoff)
 				continue
 			}
 			return lastErr
 		}
 
-		// Purge the queue
-		purged, err := r.channel.QueuePurge(queueName, false)
-		if err != nil {
-			lastErr = fmt.Errorf("failed to purge queue %s: %w", queueName, err)
-			if attempt < r.config.RetryAttempts-1 {
-				slog.Warn("retrying queue purge", "queue", queueName, "attempt", attempt+1, "error", err)
-				time.Sleep(r.config.RetryBackoff)
-				continue
-			}
-			return lastErr
-		}
-
-		slog.Info("queue cleaned", "queue", queueName, "messages_purged", purged, "total_messages", queue.Messages)
 		return nil
 	}
 
 	return lastErr
+}
+
+func (r *RabbitMQCleaner) attemptQueueCleanup(queueName string) error {
+	queue, err := r.declareQueue(queueName)
+	if err != nil {
+		return err
+	}
+
+	purged, err := r.purgeQueue(queueName)
+	if err != nil {
+		return err
+	}
+
+	slog.Info("queue cleaned", "queue", queueName, "messages_purged", purged, "total_messages", queue.Messages)
+	return nil
+}
+
+func (r *RabbitMQCleaner) declareQueue(queueName string) (*amqp091.Queue, error) {
+	queue, err := r.channel.QueueDeclare(
+		queueName,
+		true,  // durable
+		false, // delete when unused
+		false, // exclusive
+		false, // no-wait
+		nil,   // arguments
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to declare queue %s: %w", queueName, err)
+	}
+	return &queue, nil
+}
+
+func (r *RabbitMQCleaner) purgeQueue(queueName string) (int, error) {
+	purged, err := r.channel.QueuePurge(queueName, false)
+	if err != nil {
+		return 0, fmt.Errorf("failed to purge queue %s: %w", queueName, err)
+	}
+	return purged, nil
 }
 
 func (r *RabbitMQCleaner) Close() error {

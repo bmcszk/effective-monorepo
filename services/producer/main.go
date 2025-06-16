@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/bmcszk/effective-monorepo/pkg/queue"
 	"github.com/bmcszk/effective-monorepo/services/producer/producer"
 	"github.com/joho/godotenv"
@@ -33,30 +34,43 @@ func main() {
 
 func createMove(publisher *queue.Publisher) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var chMvReq producer.ChessMoveRequest
-		if err := json.NewDecoder(r.Body).Decode(&chMvReq); err != nil {
-			w.WriteHeader(400)
-			if _, writeErr := w.Write([]byte(err.Error())); writeErr != nil {
-				slog.Error("failed to write response", "error", writeErr)
-			}
-			return
-		}
-		chMvMsg := chMvReq.ToMessage()
-		qMsg, err := chMvMsg.ToQueueMessage()
+		chMvReq, err := parseRequest(r)
 		if err != nil {
-			w.WriteHeader(500)
-			if _, writeErr := w.Write([]byte(err.Error())); writeErr != nil {
-				slog.Error("failed to write response", "error", writeErr)
-			}
+			writeErrorResponse(w, 400, err)
 			return
 		}
+
+		qMsg, err := convertToQueueMessage(chMvReq)
+		if err != nil {
+			writeErrorResponse(w, 500, err)
+			return
+		}
+
 		if err := publisher.Publish(qMsg); err != nil {
-			w.WriteHeader(500)
-			if _, writeErr := w.Write([]byte(err.Error())); writeErr != nil {
-				slog.Error("failed to write response", "error", writeErr)
-			}
+			writeErrorResponse(w, 500, err)
 			return
 		}
+
 		w.WriteHeader(201)
+	}
+}
+
+func parseRequest(r *http.Request) (producer.ChessMoveRequest, error) {
+	var chMvReq producer.ChessMoveRequest
+	if err := json.NewDecoder(r.Body).Decode(&chMvReq); err != nil {
+		return chMvReq, err
+	}
+	return chMvReq, nil
+}
+
+func convertToQueueMessage(chMvReq producer.ChessMoveRequest) (*message.Message, error) {
+	chMvMsg := chMvReq.ToMessage()
+	return chMvMsg.ToQueueMessage()
+}
+
+func writeErrorResponse(w http.ResponseWriter, statusCode int, err error) {
+	w.WriteHeader(statusCode)
+	if _, writeErr := w.Write([]byte(err.Error())); writeErr != nil {
+		slog.Error("failed to write response", "error", writeErr)
 	}
 }
