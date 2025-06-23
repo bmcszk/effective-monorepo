@@ -8,6 +8,9 @@
 *.so
 *.dylib
 __debug_bin*
+producer
+consumer
+cleanup-sidecar
 
 # Test binary, built with `go test -c`
 *.test

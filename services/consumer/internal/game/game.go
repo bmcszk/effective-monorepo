@@ -90,39 +90,69 @@ func (b Board) get(square string) Piece {
 
 // move https://en.wikipedia.org/wiki/Universal_Chess_Interface
 func (b Board) move(move string) (Board, error) {
-	move = strings.TrimSpace(move)
-	move = strings.ToLower(move)
-	if len(move) < 4 {
-		return b, errors.New("invalid move")
-	}
-	ps := move[:2]
-	ts := move[2:4]
-	if err := validateSquare(ps); err != nil {
+	parsedMove, err := parseMove(move)
+	if err != nil {
 		return b, err
 	}
-	if err := validateSquare(ts); err != nil {
-		return b, err
-	}
-	p := b.get(ps)
-	t := b.get(ts)
-	if p == 0 {
+
+	piece := b.get(parsedMove.from)
+	if piece == 0 {
 		return b, errors.New("square is empty")
 	}
-	if t != 0 && t.Color() == p.Color() {
-		if (p == '♔' && t == '♖') || (p == '♚' && t == '♜') {
-			// TODO proper castle
-			b = b.set(ts, p)
-			b = b.set(ps, t)
-			return b, nil
+
+	return b.executeMove(parsedMove, piece)
+}
+
+type parsedMove struct {
+	from string
+	to   string
+}
+
+func parseMove(move string) (parsedMove, error) {
+	move = strings.TrimSpace(strings.ToLower(move))
+	if len(move) < 4 {
+		return parsedMove{}, errors.New("invalid move")
+	}
+
+	from := move[:2]
+	to := move[2:4]
+
+	if err := validateSquare(from); err != nil {
+		return parsedMove{}, err
+	}
+	if err := validateSquare(to); err != nil {
+		return parsedMove{}, err
+	}
+
+	return parsedMove{from: from, to: to}, nil
+}
+
+func (b Board) executeMove(move parsedMove, piece Piece) (Board, error) {
+	target := b.get(move.to)
+
+	if target != 0 && target.Color() == piece.Color() {
+		if isCastleMove(piece, target) {
+			return b.performCastle(move, piece, target), nil
 		}
 		return b, errors.New("pieces are of the same color")
 	}
+
 	// TODO piece move rules
 	// TODO promotions
+	return b.performRegularMove(move, piece), nil
+}
 
-	b = b.set(ps, 0)
-	b = b.set(ts, p)
-	return b, nil
+func isCastleMove(piece, target Piece) bool {
+	return (piece == '♔' && target == '♖') || (piece == '♚' && target == '♜')
+}
+
+func (b Board) performCastle(move parsedMove, piece, target Piece) Board {
+	// TODO proper castle logic
+	return b.set(move.to, piece).set(move.from, target)
+}
+
+func (b Board) performRegularMove(move parsedMove, piece Piece) Board {
+	return b.set(move.from, 0).set(move.to, piece)
 }
 
 func trimLines(lines []string) []string {
@@ -136,20 +166,35 @@ func trimLines(lines []string) []string {
 
 func normalize(lines []string) []string {
 	l := len(lines)
+	if l < 8 {
+		return padLines(lines)
+	}
+	if l > 8 {
+		return cutLines(lines)
+	}
+	return lines
+}
+
+func padLines(lines []string) []string {
+	for i := len(lines); i <= 8; i++ {
+		lines = append(lines, "")
+	}
+	return lines
+}
+
+func cutLines(lines []string) []string {
+	l := len(lines)
 	if l == 8 {
 		return lines
 	}
-	if l < 8 {
-		return normalize(append(lines, ""))
-	}
 	if l > 9 && lines[0] == "" && lines[l-1] == "" {
-		return normalize(lines[1 : l-1])
+		return cutLines(lines[1 : l-1])
 	}
 	if lines[0] == "" {
-		return normalize(lines[1:])
+		return cutLines(lines[1:])
 	}
 	if lines[l-1] == "" {
-		return normalize(lines[:l-1])
+		return cutLines(lines[:l-1])
 	}
 	return lines
 }

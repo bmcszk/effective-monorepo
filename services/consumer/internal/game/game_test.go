@@ -1,26 +1,34 @@
-package game
+package game_test
 
 import (
 	"testing"
 
+	"github.com/bmcszk/effective-monorepo/services/consumer/internal/game"
 	"github.com/google/uuid"
 )
 
-func TestGame_Move(t *testing.T) {
-	uuid := uuid.New()
+func TestGame_Move_ValidMoves(t *testing.T) {
+	testValidMoves(t)
+}
+
+func TestGame_Move_InvalidMoves(t *testing.T) {
+	testInvalidMoves(t)
+}
+
+func testValidMoves(t *testing.T) {
+	t.Helper()
+	gameUUID := uuid.New()
 
 	tests := []struct {
 		name          string
-		board         Board
-		expectedBoard Board
+		board         game.Board
+		expectedBoard game.Board
 		move          string
-		wantErr       bool
-		expectedErr   string
 	}{
 		{
-			name:  "move",
-			board: NewBoard(StartingBoardStr),
-			expectedBoard: NewBoard(`
+			name:  "pawn move",
+			board: game.NewBoard(game.StartingBoardStr),
+			expectedBoard: game.NewBoard(`
 				♜♞♝♛♚♝♞♜
 				♟♟♟♟♟♟♟♟
 
@@ -30,14 +38,12 @@ func TestGame_Move(t *testing.T) {
 				 ♙♙♙♙♙♙♙
 				♖♘♗♕♔♗♘♖
 				`),
-			move:        "a2a4",
-			wantErr:     false,
-			expectedErr: "",
+			move: "a2a4",
 		},
 		{
 			name:  "knight move",
-			board: NewBoard(StartingBoardStr),
-			expectedBoard: NewBoard(`
+			board: game.NewBoard(game.StartingBoardStr),
+			expectedBoard: game.NewBoard(`
 				♜♞♝♛♚♝♞♜
 				♟♟♟♟♟♟♟♟
 
@@ -47,13 +53,11 @@ func TestGame_Move(t *testing.T) {
 				♙♙♙♙♙♙♙♙
 				♖♘♗♕♔♗ ♖
 				`),
-			move:        "g1f3",
-			wantErr:     false,
-			expectedErr: "",
+			move: "g1f3",
 		},
 		{
-			name: "almost empty board",
-			board: NewBoard(`
+			name: "knight move on empty board",
+			board: game.NewBoard(`
 				
 
 
@@ -63,7 +67,7 @@ func TestGame_Move(t *testing.T) {
 				
 
 				`),
-			expectedBoard: NewBoard(`
+			expectedBoard: game.NewBoard(`
 				
 
 
@@ -73,51 +77,69 @@ func TestGame_Move(t *testing.T) {
 				
 
 				`),
-			move:        "f3e5",
-			wantErr:     false,
-			expectedErr: "",
+			move: "f3e5",
 		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			g := game.NewGame(gameUUID, tt.board)
+			err := g.Move(tt.move)
+			if err != nil {
+				t.Errorf("Game.Move() unexpected error = %v", err)
+			}
+			if g.Board != tt.expectedBoard {
+				t.Errorf("Game.Move() board = %v, expectedBoard %v", g.Board, tt.expectedBoard)
+			}
+		})
+	}
+}
+
+func testInvalidMoves(t *testing.T) {
+	t.Helper()
+	gameUUID := uuid.New()
+
+	tests := []struct {
+		name        string
+		board       game.Board
+		move        string
+		expectedErr string
+	}{
 		{
 			name:        "pieces are of the same color",
-			board:       NewBoard(StartingBoardStr),
+			board:       game.NewBoard(game.StartingBoardStr),
 			move:        "a2b2",
-			wantErr:     true,
 			expectedErr: "pieces are of the same color",
 		},
 		{
 			name:        "square is empty",
-			board:       NewBoard(StartingBoardStr),
+			board:       game.NewBoard(game.StartingBoardStr),
 			move:        "a3a4",
-			wantErr:     true,
 			expectedErr: "square is empty",
 		},
 		{
 			name:        "invalid square",
-			board:       NewBoard(StartingBoardStr),
+			board:       game.NewBoard(game.StartingBoardStr),
 			move:        "i8i9",
-			wantErr:     true,
 			expectedErr: "invalid square",
 		},
 		{
 			name:        "invalid move",
-			board:       NewBoard(StartingBoardStr),
+			board:       game.NewBoard(game.StartingBoardStr),
 			move:        "",
-			wantErr:     true,
 			expectedErr: "invalid move",
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			g := NewGame(uuid, tt.board)
+			g := game.NewGame(gameUUID, tt.board)
 			err := g.Move(tt.move)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Game.Move() error = %v, wantErr %v", err, tt.wantErr)
+			if err == nil {
+				t.Errorf("Game.Move() expected error but got none")
 			}
-			if tt.wantErr && err.Error() != tt.expectedErr {
+			if err.Error() != tt.expectedErr {
 				t.Errorf("Game.Move() error = %v, expectedErr %v", err, tt.expectedErr)
-			}
-			if tt.expectedBoard.String() != "" && g.Board != tt.expectedBoard {
-				t.Errorf("Game.Move() board = %v, expectedBoard %v", g.Board, tt.expectedBoard)
 			}
 		})
 	}

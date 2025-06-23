@@ -1,16 +1,22 @@
-package e2e
+//go:build e2e
 
-import "testing"
+package e2e_test
+
+import (
+	"testing"
+
+	"github.com/bmcszk/effective-monorepo/e2e"
+)
 
 func Test(t *testing.T) {
-	given, when, then := NewBlocks(t)
+	given, when, then := e2e.NewBlocks(t)
 
-	given.aGame().and().
-		aWhiteOpeningMove()
+	given.AGame().And().
+		AWhiteOpeningMove()
 
-	when.dispatchingMove()
+	when.DispatchingMove()
 
-	then.moveIsDispatched().and().
-		fetchingBoard().and().
-		boardIsFetched()
+	then.MoveIsDispatched().And().
+		FetchingBoard().And().
+		BoardIsFetched()
 }

@@ -13,19 +13,27 @@ import (
 
 func main() {
 	_ = godotenv.Load()
-	repo, err := repo.NewRepo()
+	repository, err := repo.NewRepo()
 	if err != nil {
 		panic(err)
 	}
-	defer repo.Close()
+	defer func() {
+		if err := repository.Close(); err != nil {
+			slog.Error("failed to close repo", "error", err)
+		}
+	}()
 
-	provider := game.NewGameProvider(repo)
+	provider := game.NewGameProvider(repository)
 
 	subscriber, err := queue.NewSubscriber(handleMessage(provider))
 	if err != nil {
 		panic(err)
 	}
-	defer subscriber.Close()
+	defer func() {
+		if err := subscriber.Close(); err != nil {
+			slog.Error("failed to close subscriber", "error", err)
+		}
+	}()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

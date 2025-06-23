@@ -21,6 +21,35 @@ spec:
         app: {{ .Values.producer.name }}
         ctx: {{ .Chart.Name }}
     spec:
+      {{- if .Values.cleanup.enabled }}
+      initContainers:
+        - name: cleanup-sidecar
+          image: "{{ .Values.cleanup.image.repository }}:{{ .Values.cleanup.image.tag | default "latest" }}"
+          env:
+            - name: CLEANUP_QUEUE
+              value: "{{ .Values.cleanup.targets.queue }}"
+            - name: CLEANUP_DATABASE
+              value: "false"
+            - name: AMQP_URI
+              value: "{{ .Values.global.amqp.uri }}"
+            - name: QUEUE_TOPIC
+              value: "{{ .Values.global.amqp.topic }}"
+            - name: QUEUE_TOPIC_DLQ
+              value: "{{ .Values.consumer.amqp.topicDLQ }}"
+            - name: RETRY_ATTEMPTS
+              value: "{{ .Values.cleanup.retry.attempts }}"
+            - name: RETRY_BACKOFF
+              value: "{{ .Values.cleanup.retry.backoff }}"
+            - name: CLEANUP_TIMEOUT
+              value: "{{ .Values.cleanup.timeout }}"
+          resources:
+            requests:
+              memory: {{ .Values.cleanup.resources.requests.memory }}
+              cpu: {{ .Values.cleanup.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.cleanup.resources.limits.memory }}
+              cpu: {{ .Values.cleanup.resources.limits.cpu }}
+      {{- end }}
       containers:
         - name: {{ .Values.producer.name }}
           image: "effective-monorepo/producer:{{ .Values.producer.tag | default "latest" }}"

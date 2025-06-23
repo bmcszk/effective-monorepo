@@ -52,13 +52,15 @@ func (s *Subscriber) Run(ctx context.Context) error {
 	return s.router.Run(ctx)
 }
 
-func (s *Subscriber) Close() {
-	s.router.Close()
+func (s *Subscriber) Close() error {
+	return s.router.Close()
 }
 
 func (s *Subscriber) addMiddlewares() error {
 	if s.config.TopicDLQ != "" {
-		s.subscriber.SubscribeInitialize(s.config.TopicDLQ)
+		if err := s.subscriber.SubscribeInitialize(s.config.TopicDLQ); err != nil {
+			return err
+		}
 		dlqPublisher, err := amqp.NewPublisher(s.amqpConfig, s.logger)
 		if err != nil {
 			return err
