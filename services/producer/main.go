@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/bmcszk/effective-monorepo/pkg/queue"
+	"github.com/bmcszk/effective-monorepo/services/producer/producer"
 	"github.com/joho/godotenv"
 )
 
@@ -26,7 +27,7 @@ func main() {
 
 func createMove(publisher *queue.Publisher) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var chMvReq ChessMoveRequest
+		var chMvReq producer.ChessMoveRequest
 		if err := json.NewDecoder(r.Body).Decode(&chMvReq); err != nil {
 			w.WriteHeader(400)
 			w.Write([]byte(err.Error()))

@@ -1,0 +1,9 @@
+FROM golang:1.23-alpine3.20 AS base
+WORKDIR /src
+COPY go.mod go.sum ./
+RUN go mod download
+
+FROM base AS tester
+WORKDIR /src
+COPY . .
+CMD ["go", "test", "-count=1", "./..."]

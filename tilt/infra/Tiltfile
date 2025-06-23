@@ -1,0 +1,14 @@
+load('ext://namespace', 'namespace_create')
+load('ext://helm_resource', 'helm_resource')
+load('ext://secret', 'secret_from_dict')
+
+namespace_create('infra', allow_duplicates=True)
+k8s_yaml(secret_from_dict('infra', namespace='infra', inputs={
+    'rabbitmq-password': 'guest'
+}))
+k8s_resource(objects=['infra:namespace', 'infra:secret'], new_name='infra-ns', labels='infra')
+
+helm_resource('rabbitmq', 'oci://registry-1.docker.io/bitnamicharts/rabbitmq', namespace = 'infra', flags=['--values=rabbitmq.yaml'], labels='infra', resource_deps=['infra-ns'], pod_readiness='wait')
+
+helm_resource('etcd', 'oci://registry-1.docker.io/bitnamicharts/etcd', namespace = 'infra', flags=['--values=etcd.yaml'], labels='infra', resource_deps=['infra-ns'], pod_readiness='wait')
+

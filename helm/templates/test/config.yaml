@@ -1,0 +1,16 @@
+{{- if (.Values.test.enabled) -}}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.test.name }}-config
+  labels:
+    app: {{ .Values.test.name }}
+    ctx: {{ .Chart.Name }}
+data:
+  APP_ENV: {{ .Values.env }}
+  ETCD_URIS: {{ .Values.consumer.etcd.uris }}
+  ETCD_PREFIX: {{ .Values.consumer.etcd.prefix }}
+  PRODUCER_URI: {{ .Values.test.producerUri}}
+
+{{- end }}

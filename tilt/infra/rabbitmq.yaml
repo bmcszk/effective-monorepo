@@ -1,0 +1,6 @@
+auth:
+  username: guest
+  password: guest
+  securePassword: false
+  erlangCookie: erlangSecretCookie
+  existingPasswordSecret: infra

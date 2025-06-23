@@ -1,0 +1,49 @@
+{{- if (.Values.producer.enabled) -}}
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.producer.name }}
+  labels:
+    app: {{ .Values.producer.name }}
+    ctx: {{ .Chart.Name }}
+spec:
+  replicas: {{ .Values.producer.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.producer.name }}
+      ctx: {{ .Chart.Name }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.producer.name }}
+        ctx: {{ .Chart.Name }}
+    spec:
+      containers:
+        - name: {{ .Values.producer.name }}
+          image: "effective-monorepo/producer:{{ .Values.producer.tag | default "latest" }}"
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: {{ .Values.producer.name }}-config
+          env:
+            - name: GOMEMLIMIT
+              valueFrom:
+                resourceFieldRef:
+                  resource: limits.memory
+            - name: GOMAXPROCS
+              valueFrom:
+                resourceFieldRef:
+                  resource: limits.cpu
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+      restartPolicy: Always
+
+{{- end }}
